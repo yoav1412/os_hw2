@@ -12,6 +12,7 @@
 //TODO: what's SIGCHILD? need to use it
 //TODO: handle zombies...
 //TODO: go back from SIG_DFL and SIG_IGN to handles?
+//TODO: FORUM: vulnarability? in the "|" case, father process spawns 2 children. he sets his handler to ignoe SIGINT only after both are spawned (otherwise, the children too will not stop). is it ok? (possibly there could be a sigint between spawnings...)
 
 void parent_handler(int signal){
     printf("Parent caught signal. ignoring\n"); //TODO rm
