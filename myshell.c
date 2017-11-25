@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include "myshell.h"
 
+//TODO: what's SIGCHILD? need to use it
 
 void parent_handler(int signal){
     printf("Parent caught signal. ignoring\n"); //TODO rm
