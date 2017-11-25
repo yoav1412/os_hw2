@@ -14,3 +14,4 @@
 
 
 int process_arglist(int count,char** arglist);
+int checkForPipe(char** arglist);
