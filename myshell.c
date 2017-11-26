@@ -68,7 +68,7 @@ int process_arglist(int count,char** arglist){
                 // Register SIGINT ignore sig-handler:
                 if (sigaction(SIGINT, &sa, NULL) != 0){
                     printf("Signal registration failed: %s\n", strerror(errno));
-                    exit(0);
+                    exit(1);
                 }
             }
 
@@ -80,6 +80,7 @@ int process_arglist(int count,char** arglist){
 
             if (execvp(arglist[0 + i*(pipeArgIndex+1)],arglist + i*(pipeArgIndex +1)) == -1){
                 printf("execvp failed: %s\n", strerror(errno));
+                exit(1);
 
             }
             break; //Child does not continue loop.
@@ -94,7 +95,7 @@ int process_arglist(int count,char** arglist){
         sa.sa_handler = SIG_IGN;
         if (sigaction(SIGINT, &sa, &old_sa) != 0){
             printf("Signal registration failed: %s\n", strerror(errno));
-            exit(0);
+            exit(1);
         }
 
         if (isPipe){
@@ -106,18 +107,18 @@ int process_arglist(int count,char** arglist){
             while (!isBackgroundProcess && (wait(&status) != child_pid) ){}
         }
 
+        if (isBackgroundProcess)
+
+
         // Restore father process to previous SIGINT handler here:
         printf("In father. finished waiting for son(s).\n"); // TODO: rm
         sa.sa_handler = SIG_DFL;
         if (sigaction(SIGINT, &sa, NULL) != 0){
             printf("Signal registration failed: %s\n", strerror(errno));
-            exit(0);
+            exit(1);
         }
 
-
-
     }
-
     return 1;
 
 }
