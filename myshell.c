@@ -12,6 +12,7 @@
 //TODO: what's SIGCHILD? need to use it
 //TODO: handle zombies...
 //TODO: go back from SIG_DFL and SIG_IGN to handles?
+//TODO: prepare and finalize .....
 //TODO: FORUM: vulnarability? in the "|" case, father process spawns 2 children. he sets his handler to ignoe SIGINT only after both are spawned (otherwise, the children too will not stop). is it ok? (possibly there could be a sigint between spawnings...)
 
 void parent_handler(int signal){
@@ -42,7 +43,7 @@ int process_arglist(int count,char** arglist){
         arglist[count-1] = NULL; // in order not to pass "&" as an argument to execvp.
     }
 
-    int pipeArgIndex;
+    int pipeArgIndex, firstChildPid;
     int fds[2];
     bool isPipe = (pipeArgIndex = checkForPipe(arglist)) != -1;
     if (isPipe) {
@@ -61,7 +62,7 @@ int process_arglist(int count,char** arglist){
 
             printf("In the child process.\n"); // TODO: rm
 
-
+            if (i == 0) { firstChildPid = child_pid; } // Save aside the pid of the 1st child, will use for waiting.
             if (isBackgroundProcess) {
                 sa.sa_handler = SIG_IGN;
                 // Register SIGINT ignore sig-handler:
@@ -96,10 +97,16 @@ int process_arglist(int count,char** arglist){
             exit(0);
         }
 
-
+        if (isPipe){
+            // Wait for both children (in the piped case):
+            while (!isBackgroundProcess && (wait(&status) != child_pid) && (wait(&status) != firstChildPid)){}
+        }
+        else {
+            // Wait for child (non-piped case):
+            while (!isBackgroundProcess && (wait(&status) != child_pid) ){}
+        }
 
         // Restore father process to previous SIGINT handler here:
-        while (!isBackgroundProcess && (wait(&status) != -1)){} // Wait for child / children
         printf("In father. finished waiting for son(s).\n"); // TODO: rm
         sa.sa_handler = SIG_DFL;
         if (sigaction(SIGINT, &sa, NULL) != 0){
