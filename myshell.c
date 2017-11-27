@@ -32,10 +32,8 @@ int process_arglist(int count,char** arglist){
     int status;
 
     struct sigaction sa;
-    struct sigaction child_sa;
-    struct sigaction old_sa;
     memset(&sa, 0, sizeof(sa));
-    memset(&child_sa, 0, sizeof(child_sa));
+
 
     bool isBackgroundProcess = false;
     if (strcmp(arglist[count - 1], "&") == 0) { // as arglist[count] is the NULL termination.
@@ -63,14 +61,14 @@ int process_arglist(int count,char** arglist){
             printf("In the child process.\n"); // TODO: rm
 
             if (i == 0) { firstChildPid = child_pid; } // Save aside the pid of the 1st child, will use for waiting.
-            if (isBackgroundProcess) {
-                sa.sa_handler = SIG_IGN;
-                // Register SIGINT ignore sig-handler:
-                if (sigaction(SIGINT, &sa, NULL) != 0){
-                    printf("Signal registration failed: %s\n", strerror(errno));
-                    exit(1);
-                }
+
+            // Set appropriate SIGINT handler for child:
+            sa.sa_handler = isBackgroundProcess ? SIG_IGN : SIG_DFL;
+            if (sigaction(SIGINT, &sa, NULL) != 0){
+                printf("Signal registration failed: %s\n", strerror(errno));
+                exit(1);
             }
+
 
             if (isPipe){
                 // First process (i=0) will rplace stdout (1) with pipe and second (i=1) will replace stdin (0):
@@ -91,12 +89,7 @@ int process_arglist(int count,char** arglist){
 
     if (child_pid != 0){
 
-        // Set father to ignore SIGINT while son is running:
-        sa.sa_handler = SIG_IGN;
-        if (sigaction(SIGINT, &sa, &old_sa) != 0){
-            printf("Signal registration failed: %s\n", strerror(errno));
-            exit(1);
-        }
+
 
         if (isPipe){
             // Wait for both children (in the piped case):
@@ -107,16 +100,6 @@ int process_arglist(int count,char** arglist){
             while (!isBackgroundProcess && (wait(&status) != child_pid) ){}
         }
 
-        if (isBackgroundProcess)
-
-
-        // Restore father process to previous SIGINT handler here:
-        printf("In father. finished waiting for son(s).\n"); // TODO: rm
-        sa.sa_handler = SIG_DFL;
-        if (sigaction(SIGINT, &sa, NULL) != 0){
-            printf("Signal registration failed: %s\n", strerror(errno));
-            exit(1);
-        }
 
     }
     return 1;
@@ -124,7 +107,19 @@ int process_arglist(int count,char** arglist){
 }
 
 
-int prepare(void){ return 0;}
+int prepare(void){
+    // Set father to ignore SIGINT while son is running:
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_IGN;
+    if (sigaction(SIGINT, &sa, NULL) != 0){
+        printf("Signal registration failed: %s\n", strerror(errno));
+        exit(1);
+    }
+
+    return 0;}
+
+
 int finalize(void) {return 0;}
 
 
