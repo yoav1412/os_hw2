@@ -7,7 +7,13 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include "myshell.h"
+#include <sys/wait.h>
+#include <unistd.h>
+
+
+int process_arglist(int count,char** arglist);
+int checkForPipe(char** arglist);
+
 
 void sigchld_handler(int signal){
     while (waitpid((pid_t) -1, 0, WNOHANG) > 0) {}
