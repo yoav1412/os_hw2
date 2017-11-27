@@ -53,8 +53,7 @@ int process_arglist(int count,char** arglist){
 
             if (isPipe){
                 // First process (i=0) will rplace stdout (1) with pipe and second (i=1) will replace stdin (0):
-                close(1-i);
-                dup(fds[1-i]);
+                dup2(fds[1-i], 1-i);
             }
             if (execvp(arglist[0 + i*(pipeArgIndex+1)],arglist + i*(pipeArgIndex +1)) == -1){
                 fprintf(stderr, "execvp failed: %s\n", strerror(errno));
