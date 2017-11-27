@@ -98,7 +98,7 @@ int prepare(void){
     sigchld_action.sa_flags = SA_RESTART;
     if (sigaction(SIGCHLD, &sigchld_action, NULL) != 0){
         fprintf(stderr,"Signal registration failed: %s\n", strerror(errno));
-        exit(1);
+        return -1;
     }
     return 0;
 }
