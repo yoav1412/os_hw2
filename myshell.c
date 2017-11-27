@@ -99,7 +99,7 @@ int process_arglist(int count,char** arglist){
             // Wait for child (non-piped case):
             while (!isBackgroundProcess && (wait(&status) != child_pid) ){}
         }
-        
+
 
     }
     return 1;
