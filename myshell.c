@@ -36,7 +36,7 @@ int process_arglist(int count,char** arglist){
 
     for (int i=0; i < (1 + isPipe); i++){
         if ((child_pid = fork()) < 0){
-            printf("fork failed: %s\n", strerror(errno));
+            fprintf(stderr, "fork failed: %s\n", strerror(errno));
             exit(1);
         }
 
@@ -47,7 +47,7 @@ int process_arglist(int count,char** arglist){
             // Set appropriate SIGINT handler for child:
             sa.sa_handler = isBackgroundProcess ? SIG_IGN : SIG_DFL;
             if (sigaction(SIGINT, &sa, NULL) != 0){
-                printf("Signal registration failed: %s\n", strerror(errno));
+                fprintf(stderr, "Signal registration failed: %s\n", strerror(errno));
                 exit(1);
             }
 
@@ -57,7 +57,7 @@ int process_arglist(int count,char** arglist){
                 dup(fds[1-i]);
             }
             if (execvp(arglist[0 + i*(pipeArgIndex+1)],arglist + i*(pipeArgIndex +1)) == -1){
-                printf("execvp failed: %s\n", strerror(errno));
+                fprintf(stderr, "execvp failed: %s\n", strerror(errno));
                 exit(1);
             }
             break; //Child does not continue loop.
@@ -87,7 +87,7 @@ int prepare(void){
     memset(&sigint_action, 0, sizeof(sigint_action));
     sigint_action.sa_handler = SIG_IGN;
     if (sigaction(SIGINT, &sigint_action, NULL) != 0){
-        printf("Signal registration failed: %s\n", strerror(errno));
+        fprintf(stderr,"Signal registration failed: %s\n", strerror(errno));
         exit(1);
     }
 
@@ -97,7 +97,7 @@ int prepare(void){
     sigchld_action.sa_handler = &sigchld_handler;
     sigchld_action.sa_flags = SA_RESTART;
     if (sigaction(SIGCHLD, &sigchld_action, NULL) != 0){
-        printf("Signal registration failed: %s\n", strerror(errno));
+        fprintf(stderr,"Signal registration failed: %s\n", strerror(errno));
         exit(1);
     }
     return 0;
